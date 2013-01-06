@@ -19,7 +19,7 @@ function Video(video_dom_obj, id) {
 	this.score = null;
 	var self = this;
 	this.load_score = function(callback) {
-		$.get('score/'+self._id+'_fd.txt', function(data) {
+		$.get('score/'+self._id+'_score.txt', function(data) {
 				self.score = data.split('\n');
 				callback(self);
 			}, false);
