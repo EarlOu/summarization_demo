@@ -13,7 +13,8 @@ $(function() {
 			<div class="video_wrapper"> \
                 <video class="video" src="video/' + i + '.mp4" type="video/mp4"></video> \
             </div> \
-            <p>Importance: 200</p> \
+            <p class="score">200</p> \
+            <p class="face_score">200</p> \
    		</div>');
 	}
 	for (var i=0; i<NUM_OF_VIEW; ++i) {
@@ -34,6 +35,7 @@ function fullscreen() {
 function Video(video_dom_obj, id) {
 	this.video = video_dom_obj.children('.video_wrapper').children('video').get(0);
 	this.score = video_dom_obj.children('p').get(0);
+	this.face_score = video_dom_obj.children('p').get(1);
 	this._id = id;
 	this.score_data = null;
 	this.face_data = null;
@@ -53,33 +55,41 @@ function Video(video_dom_obj, id) {
 	var j_video = $(this.video);
 	this.video.addEventListener('timeupdate', function() {
 		var frame = Math.floor(self.video.currentTime * 30);
-		var s = self.score_data[frame];
+		var s = parseInt(self.score_data[frame]);
+		var face_s = parseFloat(self.face_data[frame]);
+		var j_video = $(self.video);
+
 		if (s > SCORE_THRESHOLD) {
 			j_video.css("opacity", 1.0);
 		} else {
 			j_video.css("opacity", 0.3);
 		}
+
 		$(self.score).html(s);
-		var cluster = g_cluster[frame][self._id];
+		$(self.face_score).html(face_s);
+
+		var cluster = parseInt(g_cluster[frame][self._id]);
+
 		switch (cluster) {
-			case "0":
+			case 0:
 				j_video.css("border-color", "red");
 				break;
-			case "1":
+			case 1:
 				j_video.css("border-color", "blue");
 				break;
-			case "2":
+			case 2:
 				j_video.css("border-color", "green");
 				break;
-			case "-1":
+			case -1:
 				j_video.css("border-color", "black");
 				break;
 			default:
 				j_video.css("border-color", "yellow");
 		}
+
 	}, false);
 
-	this.load_score = function() {
+	this.load_face = function() {
 		$.get('face/'+self._id+'_face.txt', function(data) {
 				self.face_data = data.split('\n');
 		}, false);
@@ -103,9 +113,6 @@ function load_cluster() {
 	}, false);
 }
 
-function load_face() {
-}
-
 function load_data() {
 	var callback = function(video) {};
 	load_cluster();
@@ -119,25 +126,30 @@ function load_data() {
 function cluster() {
 	g_video[0].video.addEventListener('timeupdate', function() {
 		var frame = Math.floor(g_video[0].video.currentTime * 30);
+		var max_score = new Array(0, 0, 0);
+		var max_face_score = new Array(0, 0, 0);
+		var max_index = new Array(0, 0, 0);
+		var num_cluster = 0;
 		for (var i=0; i<NUM_OF_VIEW; ++i) {
-			var cluster = g_cluster[frame][i];
-			var j_video = $(g_video[0].video).parent();
-			switch (cluster) {
-				case "0":
-					j_video.css("border-color", "red");
-					break;
-				case "1":
-					j_video.css("border-color", "blue");
-					break;
-				case "2":
-					j_video.css("border-color", "green");
-					break;
-				case "-1":
-					j_video.css("border-color", "black");
-					break;
-				default:
-					j_video.css("border-color", "yellow");
+			var cluster = parseInt(g_cluster[frame][i]);
+			if (cluster == -1) continue;
+			if ((cluster + 1) > num_cluster) num_cluster = cluster + 1;
+			var s = parseInt(g_video[i].score_data[frame]);
+			var face_s = parseFloat(g_video[i].face_data[frame]);
+			if (face_s > max_face_score[cluster]) {
+				max_face_score[cluster]= face_s;
+				max_index[cluster] = i;
+			} else if (max_face_score[cluster] == 0 && s > max_score[cluster]) {
+				max_score[cluster] = s;
+				max_index[cluster] = i;
 			}
+		}
+
+		for (var i=0; i<NUM_OF_VIEW; ++i) {
+			$(g_video[i].video).parent().parent().css('border-color', 'black');
+		}
+		for (var i=0; i<num_cluster; i++) {
+			$(g_video[max_index[i]].video).parent().parent().css('border-color', 'white');	
 		}
 	}, false);
 }
