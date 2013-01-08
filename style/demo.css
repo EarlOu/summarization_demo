@@ -136,6 +136,17 @@ body:-webkit-full-screen {
 	box-shadow: 0 0 6px 1px #09c;
 }
 
+.camera-marker {
+	width: 10px;
+	height: 10px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	border-radius: 50%;
+	background-color: #33b5e5;
+	box-shadow: 0 0 6px 1px gray;
+}
+
 /*#upper_wrapper
 {
 	width: 100%;

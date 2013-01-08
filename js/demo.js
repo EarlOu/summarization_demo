@@ -8,6 +8,11 @@ function Position(x, y, side) {
 	this.side = side;
 }
 
+function MarkerPosition(x, y) {
+	this.x = x;
+	this.y = y;
+}
+
 var VIDEO_POSITION = new Array(
 	new Position(68, 25.5, "l"),
 	new Position(61, 6.5, "l"),
@@ -18,6 +23,17 @@ var VIDEO_POSITION = new Array(
 	new Position(65, 5, "r"),
 	new Position(56, 82, "l"),
 	new Position(66, 63.5, "l"));
+
+var MARDER_POSITION = new Array(
+	new MarkerPosition(41.5, 41.7),
+	new MarkerPosition(41, 33),
+	new MarkerPosition(39, 58),
+	new MarkerPosition(57, 50.5),
+	new MarkerPosition(57, 63),
+	new MarkerPosition(55.3, 70),
+	new MarkerPosition(57.1, 38.3),
+	new MarkerPosition(48.5, 60.5),
+	new MarkerPosition(47, 58));
 
 // All video objects
 var g_video = [];
@@ -41,6 +57,7 @@ function GetInfoText(id, face, importance) {
 }
 
 $(function() {
+	$('#btn-pause').css('display', 'none');
 	var layout_wrapper = $('#layout-wrapper');
 	var selected_video_bar = $('#selected-view-bar');
 	for (var i=0; i<9; i++) {
@@ -98,7 +115,12 @@ $(function() {
 		selected_video.css('display', 'none');
 		selected_video_bar.append(selected_video);
 
-		g_video[i] = new Video(video_panel, selected_video.get(0), i);
+		var marker = $('<div></div>').addClass('camera-marker');
+		layout_wrapper.append(marker);
+		marker.css('top', MARDER_POSITION[i].y+"%");
+		marker.css('left', MARDER_POSITION[i].x+"%");
+
+		g_video[i] = new Video(video_panel, selected_video.get(0), marker, i);
 	}
 
 	// load data
@@ -114,12 +136,12 @@ function fullscreen() {
 	}
 }
 
-function Video(video_dom_obj, large_video, id) {
+function Video(video_dom_obj, large_video, marker, id) {
 	this.video = video_dom_obj.children('.video-wrapper').children('video').get(0);
 	this.info_txt = video_dom_obj.children('.info-panel').children('p').get(0);
 	this.score_bar = video_dom_obj.children('.importance-bar-outer').children('div');
 	this.large_video = large_video;
-
+	this.marker = marker;
 	this._id = id;
 	this.score_data = null;
 	this.face_data = null;
@@ -175,22 +197,23 @@ function Video(video_dom_obj, large_video, id) {
 
 		var cluster = parseInt(g_cluster[frame][self._id]);
 
-		// switch (cluster) {
-		// 	case 0:
-		// 		j_video.css("border-color", "#cee4f2");
-		// 		break;
-		// 	case 1:
-		// 		j_video.css("border-color", "#4b7ba6");
-		// 		break;
-		// 	case 2:
-		// 		j_video.css("border-color", "#284659");
-		// 		break;
-		// 	case -1:
-		// 		j_video.css("border-color", "black");
-		// 		break;
-		// 	default:
-		// 		j_video.css("border-color", "black");
-		// }
+		switch (cluster) {
+			case 0:
+				marker.css("background-color", "red");
+				marker.css("background-color", "red");
+				break;
+			case 1:
+				marker.css("background-color", "yellow");
+				break;
+			case 2:
+				marker.css("background-color", "green");
+				break;
+			case -1:
+				marker.css("background-color", "#33b5e5");
+				break;
+			default:
+				marker.css("background-color", "black");
+		}
 	};
 
 	this.play = function() {
@@ -274,10 +297,14 @@ function play() {
 	for (var i=0; i<NUM_OF_VIEW; ++i) {
 		g_video[i].play();
 	}
+	$('#btn-play').css('display', 'none');
+	$('#btn-pause').css('display', 'inline');
 }
 
-function stop() {
+function pause() {
 	for (var i=0; i<NUM_OF_VIEW; ++i) {
 		g_video[i].pause();
 	}
+	$('#btn-play').css('display', 'inline');
+	$('#btn-pause').css('display', 'none');
 }
