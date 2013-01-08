@@ -119,6 +119,23 @@ body:-webkit-full-screen {
 	box-shadow: 0 0 6px 2px #0099cc;
 }
 
+#selected-view-bar {
+	width: 100%;
+	height: 26%;
+	margin: 20px;
+	text-align: center;
+}
+
+.selected-video {
+	height: 100%;
+	margin: 0 10px;
+	display: inline-block;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #33b5e5;
+	box-shadow: 0 0 6px 1px #09c;
+}
+
 /*#upper_wrapper
 {
 	width: 100%;

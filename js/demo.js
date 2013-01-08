@@ -1,5 +1,6 @@
 var NUM_OF_VIEW = 9;
 var SCORE_THRESHOLD = 1000;
+var FRAME_RATE = 24;
 
 function Position(x, y, side) {
 	this.x = x;
@@ -41,6 +42,7 @@ function GetInfoText(id, face, importance) {
 
 $(function() {
 	var layout_wrapper = $('#layout-wrapper');
+	var selected_video_bar = $('#selected-view-bar');
 	for (var i=0; i<9; i++) {
 		var x = VIDEO_POSITION[i].x;
 		var y = VIDEO_POSITION[i].y;
@@ -59,7 +61,7 @@ $(function() {
 		video_wrapper.addClass('video-wrapper');
 		var video = $('<video></video>');
 		video.addClass('video');
-		video.attr('src', 'video/' + i + '.mp4');
+		video.attr('src', 'video/' + i + '_2.mp4');
 		video.attr('type', 'video/mp4');
 		var info_panel = $('<div></div>');
 		info_panel.addClass('info-panel');
@@ -90,7 +92,13 @@ $(function() {
 		video_panel.append(score_bar_outer);
 		layout_wrapper.append(video_panel);
 
-		g_video[i] = new Video(video_panel, i);
+		var selected_video = $('<video></video>').attr('class', 'selected-video');
+		selected_video.attr('src', 'video/'+i+'_2.mp4');
+		selected_video.attr('type', 'video/mp4');
+		selected_video.css('display', 'none');
+		selected_video_bar.append(selected_video);
+
+		g_video[i] = new Video(video_panel, selected_video.get(0), i);
 	}
 
 	// load data
@@ -106,10 +114,11 @@ function fullscreen() {
 	}
 }
 
-function Video(video_dom_obj, id) {
+function Video(video_dom_obj, large_video, id) {
 	this.video = video_dom_obj.children('.video-wrapper').children('video').get(0);
 	this.info_txt = video_dom_obj.children('.info-panel').children('p').get(0);
 	this.score_bar = video_dom_obj.children('.importance-bar-outer').children('div');
+	this.large_video = large_video;
 
 	this._id = id;
 	this.score_data = null;
@@ -142,7 +151,7 @@ function Video(video_dom_obj, id) {
 	};
 
 	this.update = function() {
-		var frame = Math.floor(self.video.currentTime * 30);
+		var frame = Math.floor(self.video.currentTime * FRAME_RATE);
 		var s = self.score_data[frame];
 		var face_s = parseFloat(self.face_data[frame]);
 
@@ -186,10 +195,12 @@ function Video(video_dom_obj, id) {
 
 	this.play = function() {
 		self.video.play();
+		self.large_video.play();
 	};
 
 	this.pause = function() {
 		self.video.pause();
+		self.large_video.pause();
 	};
 }
 
@@ -221,12 +232,12 @@ function load_finish() {
 	for (var i=0; i<NUM_OF_VIEW; i++) {
 		g_video[i].init();
 	}
-	// init_cluster();
+	init_cluster();
 }
 
 function init_cluster() {
 	g_video[0].video.addEventListener('timeupdate', function() {
-		var frame = Math.floor(g_video[0].video.currentTime * 30);
+		var frame = Math.floor(g_video[0].video.currentTime * FRAME_RATE);
 		var max_score = new Array(0, 0, 0);
 		var max_face_score = new Array(0, 0, 0);
 		var max_index = new Array(0, 0, 0);
@@ -234,7 +245,7 @@ function init_cluster() {
 		for (var i=0; i<NUM_OF_VIEW; ++i) {
 			var cluster = g_cluster[frame][i];
 			if (cluster == -1) continue;
-			if ((cluster + 1) > num_cluster) num_cluster = cluster + 1;
+			if ((cluster + 1) > num_cluster) num_cluster = parseInt(cluster) + 1;
 			var s = g_video[i].score_data[frame];
 			var face_s = parseFloat(g_video[i].face_data[frame]);
 			if (face_s > max_face_score[cluster]) {
@@ -246,11 +257,15 @@ function init_cluster() {
 			}
 		}
 
+		// console.log(max_index);
+		// console.log(num_cluster);
 		for (var i=0; i<NUM_OF_VIEW; i++) {
-			$(g_video[i].video).parent().parent().css('border-color', 'black');
+			$(g_video[i].large_video).css('display', 'none');
 		}
+		var selected_video_bar = $('#selected-view-bar');
 		for (var i=0; i<num_cluster; i++) {
-			$(g_video[max_index[i]].video).parent().parent().css('border-color', 'white');	
+			$(g_video[max_index[i]].large_video).css('display', 'inline-block');
+			// $(g_video[max_index[i]].large_video).prependTo(selected_video_bar);
 		}
 	}, false);
 }
