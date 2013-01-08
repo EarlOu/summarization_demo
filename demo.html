@@ -5,12 +5,26 @@
     <script src="js/demo.js"></script>
     <link rel="stylesheet" type="text/css" href="style/demo.css"/>
 </head>
-<body>
-	<!-- <div id="layout_wrapper"></div> -->
-    <div id="main_wrapper"></div>
+<body onresize="resize();">
+    <div id="main-wrapper">
+    	<div id="layout-wrapper">
+    		<img class="layout" src="img/layout.png"></img>
+<!--     		<div class="video-panel video-panel-left">
+				<div class="video-wrapper">
+					<video class="video" src="video/0.mp4" type="video/mp4"></video>
+				</div>
+				<div class="info-panel">
+					<p class="panel-text">Camera #1</br>
+					   Importance: 100</br>
+					   Status: Normal</p>
+				</div>
+			</div> -->
+    		<!-- <div class="video"></div> -->
+    	</div>
+    </div>
     <button onClick="fullscreen();">click me to go fullscreen</button>
-    <button onClick="start();">start</button>
-    <button onClick="stop();">stop</button>
+    <button onClick="play();">start</button>
+    <!-- <button onClick="stop();">stop</button> -->
 
 </body>
 </html>
