@@ -8,14 +8,14 @@ function Position(x, y, side) {
 }
 
 var VIDEO_POSITION = new Array(
-	new Position(69, 22, "l"),
-	new Position(62, 4.5, "l"),
-	new Position(69, 44.8, "l"),
+	new Position(68, 25.5, "l"),
+	new Position(61, 6.5, "l"),
+	new Position(67, 44.8, "l"),
 	new Position(69, 27, "r"),
 	new Position(69.5, 51.8, "r"),
-	new Position(56, 82, "l"),
-	new Position(65, 5, "r"),
 	new Position(59, 78, "r"),
+	new Position(65, 5, "r"),
+	new Position(56, 82, "l"),
 	new Position(66, 63.5, "l"));
 
 // All video objects
@@ -32,9 +32,10 @@ function GetInfoText(id, face, importance) {
 	var state;
 	if (importance > SCORE_THRESHOLD) state = 'Normal';
 	else state = 'Off';
+	var normal_score = importance/SCORE_THRESHOLD/2;
 	return 'Camera #' + id + '</br>' +
-			'Importance: ' + importance + '</br>' +
-			'Face: ' + face + '</br> ' +
+			'Importance: ' + normal_score.toFixed(2) + '</br>' +
+			'Face: ' + face.toFixed(2) + '</br> ' +
 			'Status: ' + state;
 }
 
@@ -70,11 +71,23 @@ $(function() {
 			info_txt.addClass('panel-text-right', 0);
 		}
 		info_txt.html(GetInfoText(i, 0, 0));
+		var score_bar_outer = $('<div></div>');
+		score_bar_outer.addClass('importance-bar-outer');
+		if (side == 'l') {
+			score_bar_outer.css('right', 0);
+		} else {
+			score_bar_outer.css('left', 0);
+		}
+		var score_bar_inner = $('<div></div>');
+		score_bar_inner.addClass('importance-bar-inner importance-bar-inner-low');
+		score_bar_inner.css('width', '0');
+		score_bar_outer.append(score_bar_inner);
 
 		info_panel.append(info_txt);
 		video_wrapper.append(video);
 		video_panel.append(video_wrapper);
 		video_panel.append(info_panel);
+		video_panel.append(score_bar_outer);
 		layout_wrapper.append(video_panel);
 
 		g_video[i] = new Video(video_panel, i);
@@ -95,7 +108,8 @@ function fullscreen() {
 
 function Video(video_dom_obj, id) {
 	this.video = video_dom_obj.children('.video-wrapper').children('video').get(0);
-	this.info_txt = video_dom_obj.children('.info_panel').children('p').get(0);
+	this.info_txt = video_dom_obj.children('.info-panel').children('p').get(0);
+	this.score_bar = video_dom_obj.children('.importance-bar-outer').children('div');
 
 	this._id = id;
 	this.score_data = null;
@@ -138,27 +152,36 @@ function Video(video_dom_obj, id) {
 			j_video.css("opacity", 0.3);
 		}
 
-		// $(self.score).html(s);
+		$(self.info_txt).html(GetInfoText(self._id, face_s, s));
+		var normal_width = s / SCORE_THRESHOLD / 10;
+		if (normal_width > 1) normal_width = 1;
+		normal_width *= 100;
+		$(self.score_bar).css('width', normal_width+'%');
+		if (s > SCORE_THRESHOLD) {
+			self.score_bar.attr('class', 'importance-bar-inner importance-bar-inner-high');
+		} else {
+			self.score_bar.attr('class', 'importance-bar-inner importance-bar-inner-low');
+		}
 		// $(self.face_score).html(face_s);
 
 		var cluster = parseInt(g_cluster[frame][self._id]);
 
-		switch (cluster) {
-			case 0:
-				j_video.css("border-color", "#cee4f2");
-				break;
-			case 1:
-				j_video.css("border-color", "#4b7ba6");
-				break;
-			case 2:
-				j_video.css("border-color", "#284659");
-				break;
-			case -1:
-				j_video.css("border-color", "black");
-				break;
-			default:
-				j_video.css("border-color", "black");
-		}
+		// switch (cluster) {
+		// 	case 0:
+		// 		j_video.css("border-color", "#cee4f2");
+		// 		break;
+		// 	case 1:
+		// 		j_video.css("border-color", "#4b7ba6");
+		// 		break;
+		// 	case 2:
+		// 		j_video.css("border-color", "#284659");
+		// 		break;
+		// 	case -1:
+		// 		j_video.css("border-color", "black");
+		// 		break;
+		// 	default:
+		// 		j_video.css("border-color", "black");
+		// }
 	};
 
 	this.play = function() {
